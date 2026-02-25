@@ -20,7 +20,7 @@ export default function AddTransactionPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
-    const activeCategories = categories.filter(c => c.type === type);
+    const activeCategories = categories.filter(c => c.type === type || c.type === 'both');
 
     const handleSubmit = async (e) => {
         e.preventDefault();

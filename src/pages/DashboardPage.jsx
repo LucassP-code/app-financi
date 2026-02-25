@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownLeft, RefreshCcw, Landmark, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency, formatDate, t } from '../utils/helpers';
-import { getTransactions } from '../services/supabase';
+import { getTransactions, getCategories } from '../services/supabase';
 import useStore from '../store/useStore';
 import './Dashboard.css';
 
@@ -12,12 +12,16 @@ export default function DashboardPage() {
     const transactions = useStore((s) => s.transactions);
     const setTransactions = useStore((s) => s.setTransactions);
     const getSummary = useStore((s) => s.getSummary);
+    const setCategories = useStore((s) => s.setCategories);
     const language = useStore((s) => s.language);
     const currency = useStore((s) => s.currency);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user) getTransactions(user.id).then(({ data }) => data && setTransactions(data));
+        if (user) {
+            getTransactions(user.id).then(({ data }) => data && setTransactions(data));
+            getCategories().then(({ data }) => data && setCategories(data));
+        }
     }, [user]);
 
     const summary = getSummary();
