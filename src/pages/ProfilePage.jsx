@@ -108,7 +108,7 @@ export default function ProfilePage() {
           display: flex; align-items: center; justify-content: center; color: var(--text-primary);
           transition: var(--transition);
         }
-        .menu-text { flex: 1; display: flex; flexDirection: column; }
+        .menu-text { flex: 1; display: flex; flex-direction: column; }
         .menu-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
         .menu-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
 

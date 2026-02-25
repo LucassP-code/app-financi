@@ -32,12 +32,12 @@ export default function AIAgentPage() {
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.lang = 'pt-BR';
-            recognition.interimResults = true;
-            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.continuous = false;
+            recognition.maxAlternatives = 1;
             recognition.onresult = (e) => {
-                let transcript = '';
-                for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
-                setInput(transcript);
+                const transcript = e.results[0][0].transcript;
+                setInput(prev => prev ? prev + ' ' + transcript : transcript);
             };
             recognition.onerror = () => setRecording(false);
             recognition.onend = () => setRecording(false);
@@ -170,7 +170,7 @@ export default function AIAgentPage() {
 
             <div style={{ padding: '16px 24px', position: 'relative' }}>
                 <div className="ai-input-bar premium-glass-bar">
-                    <input type="file" ref={fileRef} accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
+                    <input type="file" ref={fileRef} accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
                     <button className="ai-tool-btn" onClick={() => fileRef.current?.click()}><Camera size={20} /></button>
                     <button className={`ai-tool-btn ${recording ? 'recording' : ''}`} onClick={toggleRecording}>
                         {recording ? <MicOff size={20} /> : <Mic size={20} />}
@@ -178,11 +178,11 @@ export default function AIAgentPage() {
 
                     <input
                         className="ai-input"
-                        placeholder={recording ? 'Listening...' : 'Message FinBot...'}
+                        placeholder={recording ? 'Ouvindo...' : 'Message FinBot...'}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                        style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}
+                        style={{ background: 'transparent', border: 'none', boxShadow: 'none', flex: 1, minWidth: 0, fontSize: 16, color: '#fff', outline: 'none' }}
                     />
 
                     <button className="ai-send-btn neon" onClick={handleSend} disabled={!input.trim() || loading}>
