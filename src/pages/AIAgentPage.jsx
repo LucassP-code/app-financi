@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Camera, Trash2, CheckCircle, Mic, MicOff, Loader, Zap } from 'lucide-react';
 import { sendMessage, analyzeImage, clearChat } from '../services/gemini';
 import { addTransaction, supabase } from '../services/supabase';
-import { formatCurrency, getCurrentMonth } from '../utils/helpers';
+import { formatCurrency, getCurrentMonth, t } from '../utils/helpers';
 import useStore from '../store/useStore';
 import './AIAgent.css';
 
@@ -24,6 +24,7 @@ export default function AIAgentPage() {
     const setGoals = useStore((s) => s.setGoals);
     const budgets = useStore((s) => s.budgets);
     const setBudgets = useStore((s) => s.setBudgets);
+    const language = useStore((s) => s.language);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
 
@@ -118,7 +119,7 @@ export default function AIAgentPage() {
                     </div>
                     <div>
                         <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.5 }}>FinBot IA</h2>
-                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Smart Financial Assistant</span>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('smartAssistant')}</span>
                     </div>
                 </div>
                 <button className="del-btn modern" onClick={() => { clearChat(); storeClearChat(); }}><Trash2 size={18} /></button>
@@ -128,15 +129,20 @@ export default function AIAgentPage() {
                 {chatMessages.length === 0 ? (
                     <div className="empty-state card-solid" style={{ margin: 'auto' }}>
                         <Zap size={48} color="var(--primary)" style={{ filter: 'drop-shadow(0 0 10px rgba(142,255,0,0.5))' }} />
-                        <h3>Ask anything</h3>
-                        <p>Tell me what you spent, upload an invoice, or use audio.</p>
+                        <h3>{t('askAnything')}</h3>
+                        <p>{t('tellMeSpent')}</p>
                         <div className="grid-2" style={{ gap: 8, marginTop: 16 }}>
-                            {["I spent $45 on food", "Create a $5k goal", "Upload receipt", "Speak to record"].map((p, i) => (
+                            {[
+                                { text: t('income') === 'Receita' ? 'Gastei R$45 em comida' : t('income') === 'Ingreso' ? 'Gasté $45 en comida' : 'I spent $45 on food', action: 'input' },
+                                { text: t('income') === 'Receita' ? 'Criar meta de R$5k' : t('income') === 'Ingreso' ? 'Crear meta de $5k' : 'Create a $5k goal', action: 'input' },
+                                { text: t('income') === 'Receita' ? 'Enviar comprovante' : t('income') === 'Ingreso' ? 'Subir recibo' : 'Upload receipt', action: 'upload' },
+                                { text: t('income') === 'Receita' ? 'Falar para gravar' : t('income') === 'Ingreso' ? 'Hablar para grabar' : 'Speak to record', action: 'speak' },
+                            ].map((p, i) => (
                                 <button key={i} className="ai-prompt-btn dark-pill" onClick={() => {
-                                    if (p.includes('Upload')) fileRef.current?.click();
-                                    else if (p.includes('Speak')) toggleRecording();
-                                    else setInput(p);
-                                }}>{p}</button>
+                                    if (p.action === 'upload') fileRef.current?.click();
+                                    else if (p.action === 'speak') toggleRecording();
+                                    else setInput(p.text);
+                                }}>{p.text}</button>
                             ))}
                         </div>
                     </div>
@@ -162,7 +168,7 @@ export default function AIAgentPage() {
                 {loading && (
                     <div className="ai-typing">
                         <Zap size={16} className="ai-pulse-neon" />
-                        <span style={{ color: 'var(--primary)' }}>FinBot is typing...</span>
+                        <span style={{ color: 'var(--primary)' }}>{t('isTyping')}</span>
                     </div>
                 )}
                 <div ref={chatEndRef} />
@@ -178,7 +184,7 @@ export default function AIAgentPage() {
 
                     <input
                         className="ai-input"
-                        placeholder={recording ? 'Ouvindo...' : 'Message FinBot...'}
+                        placeholder={recording ? t('listening') : t('messageFinbot')}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}

@@ -10,6 +10,8 @@ export default function AddTransactionPage() {
     const user = useStore((s) => s.user);
     const categories = useStore((s) => s.categories);
     const addTransactionToStore = useStore((s) => s.addTransaction);
+    const language = useStore((s) => s.language);
+    const currency = useStore((s) => s.currency);
 
     const [type, setType] = useState('expense');
     const [amount, setAmount] = useState('');
@@ -82,7 +84,7 @@ export default function AddTransactionPage() {
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 32 }}>
                     <div className="amount-input-wrapper">
-                        <span className="currency-symbol">$</span>
+                        <span className="currency-symbol">{currency === 'BRL' ? 'R$' : currency === 'EUR' ? '€' : '$'}</span>
                         <input
                             type="number"
                             step="0.01"
@@ -98,7 +100,7 @@ export default function AddTransactionPage() {
                         <label style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>{t('description').toUpperCase()}</label>
                         <input
                             className="input"
-                            placeholder="What was this for?"
+                            placeholder={t('addDescription')}
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                         />
