@@ -29,7 +29,7 @@ export default function DashboardPage() {
         const day = d.toLocaleDateString('en-US', { weekday: 'short' }); // Inspiração usa inglês: Mon, Tue, etc
         const income = transactions.filter(t => t.type === 'income' && new Date(t.date).toDateString() === d.toDateString()).reduce((s, t) => s + parseFloat(t.amount), 0);
         const expense = transactions.filter(t => t.type === 'expense' && new Date(t.date).toDateString() === d.toDateString()).reduce((s, t) => s + parseFloat(t.amount), 0);
-        return { day, Income: income, Expense: expense };
+        return { day, [t('income')]: income, [t('expense')]: expense };
     });
 
     const actions = [
@@ -161,8 +161,8 @@ export default function DashboardPage() {
                                     contentStyle={{ background: '#121212', border: '1px solid #1E1E1E', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
                                     formatter={(v) => formatCurrency(v)}
                                 />
-                                <Line type="monotone" dataKey="Income" stroke="var(--primary)" strokeWidth={4} dot={false} activeDot={{ r: 6, fill: 'var(--primary)', stroke: '#050505', strokeWidth: 4 }} />
-                                <Line type="monotone" dataKey="Expense" stroke="rgba(255,255,255,0.1)" strokeWidth={3} dot={false} />
+                                <Line type="monotone" dataKey={t('income')} stroke="#00E676" strokeWidth={4} dot={false} activeDot={{ r: 6, fill: '#00E676', stroke: '#050505', strokeWidth: 4 }} />
+                                <Line type="monotone" dataKey={t('expense')} stroke="#FF5252" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#FF5252', stroke: '#050505', strokeWidth: 4 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>

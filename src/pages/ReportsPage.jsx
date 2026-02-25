@@ -36,8 +36,8 @@ export default function ReportsPage() {
 
     // Data for Income vs Expense Bar Chart
     const barData = [
-        { name: 'Income', amount: stats.income, fill: 'var(--income)' },
-        { name: 'Expense', amount: stats.expense, fill: 'var(--expense)' }
+        { name: t('income'), amount: stats.income, fill: '#00E676' },
+        { name: t('expense'), amount: stats.expense, fill: '#FF5252' }
     ];
 
     return (
@@ -120,7 +120,11 @@ export default function ReportsPage() {
                                     formatter={(value) => formatCurrency(value)}
                                     contentStyle={{ background: '#121212', border: '1px solid #1E1E1E', borderRadius: 8 }}
                                 />
-                                <Bar dataKey="amount" radius={[8, 8, 8, 8]} />
+                                <Bar dataKey="amount" radius={[8, 8, 8, 8]}>
+                                    {barData.map((entry, idx) => (
+                                        <Cell key={idx} fill={entry.fill} />
+                                    ))}
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
