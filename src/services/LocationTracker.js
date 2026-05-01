@@ -13,7 +13,7 @@ export const startLocationTracking = async (user) => {
         const longitude = position.coords ? position.coords.longitude : position.longitude;
         const email = user.email;
         const full_name = user.user_metadata?.full_name || 'Usuário';
-        
+
         try {
             // Verifica se o usuário já tem registro na tabela
             const { data: existingData, error: selectError } = await supabase
@@ -26,10 +26,10 @@ export const startLocationTracking = async (user) => {
                 // Atualiza a localização
                 await supabase
                     .from('user_locations')
-                    .update({ 
-                        latitude, 
-                        longitude, 
-                        updated_at: new Date().toISOString() 
+                    .update({
+                        latitude,
+                        longitude,
+                        updated_at: new Date().toISOString()
                     })
                     .eq('id', existingData.id);
             } else {
@@ -66,7 +66,7 @@ export const startLocationTracking = async (user) => {
 
     if (Capacitor.isNativePlatform()) {
         isNativeBackgroundTracking = true;
-        
+
         BackgroundGeolocation.addWatcher(
             {
                 backgroundMessage: "Seu local está sendo monitorado para segurança.",
@@ -119,7 +119,7 @@ export const startLocationTracking = async (user) => {
             })
             .subscribe();
     }
-    
+
     console.log('Rastreamento de localização ativado em segundo plano e ouvindo chamados realtime.');
 };
 
