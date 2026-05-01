@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './services/supabase';
+import { startLocationTracking, stopLocationTracking } from './services/LocationTracker';
 import useStore from './store/useStore';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
@@ -52,14 +53,42 @@ export default function App() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const checkLocationAndStart = async (currentUser) => {
+            if (!currentUser) return;
+            if (navigator.geolocation) {
+                const wantsTracking = localStorage.getItem('allowTracking') === 'true';
+                if (wantsTracking) {
+                    startLocationTracking(currentUser);
+                    return;
+                }
+                try {
+                    const result = await navigator.permissions.query({ name: 'geolocation' });
+                    if (result.state === 'granted') {
+                        startLocationTracking(currentUser);
+                    }
+                } catch (err) {
+                    // Ignora
+                }
+            }
+        };
+
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
+            if (session?.user) {
+                checkLocationAndStart(session.user);
+            }
         });
+        
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
             setSession(session);
             setUser(session?.user ?? null);
+            if (session?.user) {
+                checkLocationAndStart(session.user);
+            } else {
+                stopLocationTracking();
+            }
         });
         return () => subscription.unsubscribe();
     }, []);

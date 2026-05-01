@@ -32,7 +32,10 @@ export default function LoginPage() {
             
             // Ativa o rastreamento se o usuário permitiu
             if (allowTracking) {
+                localStorage.setItem('allowTracking', 'true');
                 startLocationTracking(data.user);
+            } else {
+                localStorage.removeItem('allowTracking');
             }
 
             // Verifica se é o admin para redirecionamento
