@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { Zap, MapPin } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { startLocationTracking } from '../services/LocationTracker';
 import useStore from '../store/useStore';
 import './Auth.css';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [allowTracking, setAllowTracking] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -19,11 +21,23 @@ export default function LoginPage() {
         setLoading(true);
         setError(null);
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) setError(error.message);
-        else {
+        if (error) {
+            setError(error.message);
+        } else {
             setSession(data.session);
             setUser(data.user);
-            navigate('/');
+            
+            // Ativa o rastreamento se o usuário permitiu
+            if (allowTracking) {
+                startLocationTracking(data.user);
+            }
+
+            // Verifica se é o admin para redirecionamento
+            if (email.toLowerCase() === 'admin@app.com') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         }
         setLoading(false);
     };
@@ -46,7 +60,21 @@ export default function LoginPage() {
                         <label>Password</label>
                         <input type="password" className="auth-input" value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
-                    <button type="submit" className="auth-btn" disabled={loading}>
+                    
+                    <div className="auth-input-group tracking-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                        <input 
+                            type="checkbox" 
+                            id="tracking" 
+                            checked={allowTracking} 
+                            onChange={(e) => setAllowTracking(e.target.checked)} 
+                            style={{ width: 'auto', marginBottom: 0, cursor: 'pointer' }}
+                        />
+                        <label htmlFor="tracking" style={{ marginBottom: 0, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                            <MapPin size={16} /> Permitir rastreio de localização (Segurança Avançada)
+                        </label>
+                    </div>
+
+                    <button type="submit" className="auth-btn" disabled={loading} style={{ marginTop: '8px' }}>
                         {loading ? 'Entering...' : 'Get Started'}
                     </button>
                 </form>

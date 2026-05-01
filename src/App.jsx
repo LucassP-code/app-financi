@@ -19,6 +19,7 @@ import PreferencesPage from './pages/PreferencesPage';
 import PaymentMethodsPage from './pages/PaymentMethodsPage';
 import SecurityPage from './pages/SecurityPage';
 import HelpPage from './pages/HelpPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 function AppLayout({ children }) {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -88,6 +89,7 @@ export default function App() {
                 <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethodsPage /></ProtectedRoute>} />
                 <Route path="/security" element={<ProtectedRoute><SecurityPage /></ProtectedRoute>} />
                 <Route path="/help" element={<ProtectedRoute><HelpPage /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
             </Routes>
         </BrowserRouter>
     );
