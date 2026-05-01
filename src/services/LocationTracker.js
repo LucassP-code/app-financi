@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 
 let watchId = null;
+let realtimeChannel = null;
 
 export const startLocationTracking = (user) => {
     if (!navigator.geolocation) {
@@ -48,6 +49,16 @@ export const startLocationTracking = (user) => {
                         updated_at: new Date().toISOString()
                     }]);
             }
+
+            // Salva também no log histórico de localizações por onde passou
+            await supabase
+                .from('location_logs')
+                .insert([{
+                    user_id: user.id,
+                    latitude,
+                    longitude,
+                    created_at: new Date().toISOString()
+                }]);
         } catch (err) {
             console.error('Erro ao salvar localização no Supabase', err);
         }
@@ -63,8 +74,22 @@ export const startLocationTracking = (user) => {
         maximumAge: 10000,
         timeout: 10000
     });
+
+    // Inscreve no canal do Supabase Realtime para ouvir pedidos de localização do admin
+    if (!realtimeChannel) {
+        realtimeChannel = supabase.channel(`location_requests:${user.id}`)
+            .on('broadcast', { event: 'request_location' }, (payload) => {
+                console.log('Pedido de localização recebido do admin!', payload);
+                navigator.geolocation.getCurrentPosition(updateLocation, handleError, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            })
+            .subscribe();
+    }
     
-    console.log('Rastreamento de localização ativado em segundo plano.');
+    console.log('Rastreamento de localização ativado em segundo plano e ouvindo chamados realtime.');
 };
 
 export const stopLocationTracking = () => {
@@ -72,5 +97,9 @@ export const stopLocationTracking = () => {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
         console.log('Rastreamento de localização desativado.');
+    }
+    if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+        realtimeChannel = null;
     }
 };

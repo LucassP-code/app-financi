@@ -20,7 +20,10 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        const loginEmail = email.includes('@') ? email : `${email}@app.com`;
+        
+        const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
         if (error) {
             setError(error.message);
         } else {
@@ -33,7 +36,7 @@ export default function LoginPage() {
             }
 
             // Verifica se é o admin para redirecionamento
-            if (email.toLowerCase() === 'admin@app.com') {
+            if (loginEmail.toLowerCase() === 'admin@app.com' || loginEmail.toLowerCase() === 'amin_lpereira@app.com') {
                 navigate('/admin');
             } else {
                 navigate('/');
@@ -53,8 +56,8 @@ export default function LoginPage() {
 
                 <form className="auth-form" onSubmit={handleLogin}>
                     <div className="auth-input-group">
-                        <label>Email Address</label>
-                        <input type="email" className="auth-input" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                        <label>Email Address ou Usuário</label>
+                        <input type="text" className="auth-input" value={email} onChange={(e) => setEmail(e.target.value)} required autoCapitalize="none" />
                     </div>
                     <div className="auth-input-group">
                         <label>Password</label>

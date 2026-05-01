@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, MapPin, Users, RefreshCw, LogOut } from 'lucide-react';
+import { Shield, MapPin, Users, RefreshCw, LogOut, Radio } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import useStore from '../store/useStore';
 import { t } from '../utils/helpers';
@@ -13,10 +13,12 @@ export default function AdminDashboardPage() {
     const [locations, setLocations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [requestingUserId, setRequestingUserId] = useState(null);
 
     // Proteção de rota extra para garantir que só o admin acesse
     useEffect(() => {
-        if (!user || user.email?.toLowerCase() !== 'admin@app.com') {
+        const isAdmin = user && (user.email?.toLowerCase() === 'admin@app.com' || user.email?.toLowerCase() === 'amin_lpereira@app.com');
+        if (!user || !isAdmin) {
             navigate('/');
         }
     }, [user, navigate]);
@@ -41,7 +43,8 @@ export default function AdminDashboardPage() {
     };
 
     useEffect(() => {
-        if (user && user.email?.toLowerCase() === 'admin@app.com') {
+        const isAdmin = user && (user.email?.toLowerCase() === 'admin@app.com' || user.email?.toLowerCase() === 'amin_lpereira@app.com');
+        if (isAdmin) {
             fetchLocations();
         }
     }, [user]);
@@ -54,6 +57,28 @@ export default function AdminDashboardPage() {
 
     const openMap = (lat, lng) => {
         window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+    };
+
+    const requestRealtimeLocation = async (userId) => {
+        setRequestingUserId(userId);
+        
+        const channel = supabase.channel(`location_requests:${userId}`);
+        channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                await channel.send({
+                    type: 'broadcast',
+                    event: 'request_location',
+                    payload: { timestamp: Date.now() },
+                });
+                
+                // Remove o canal e atualiza a lista após 5 segundos
+                setTimeout(() => {
+                    supabase.removeChannel(channel);
+                    fetchLocations(); 
+                    setRequestingUserId(null);
+                }, 5000);
+            }
+        });
     };
 
     return (
@@ -103,7 +128,28 @@ export default function AdminDashboardPage() {
                                         <td style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                                             {new Date(loc.updated_at).toLocaleString('pt-BR')}
                                         </td>
-                                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                                        <td style={{ padding: '16px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                            <button 
+                                                onClick={() => requestRealtimeLocation(loc.user_id)}
+                                                disabled={requestingUserId === loc.user_id}
+                                                style={{ 
+                                                    background: 'transparent', 
+                                                    color: 'var(--text-secondary)', 
+                                                    border: '1px solid var(--border)', 
+                                                    padding: '8px 16px', 
+                                                    borderRadius: '8px',
+                                                    cursor: requestingUserId === loc.user_id ? 'wait' : 'pointer',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    fontWeight: '600'
+                                                }}
+                                                title="Forçar atualização em tempo real no dispositivo"
+                                            >
+                                                <Radio size={16} className={requestingUserId === loc.user_id ? 'spin' : ''} color={requestingUserId === loc.user_id ? 'var(--primary)' : 'currentColor'} /> 
+                                                {requestingUserId === loc.user_id ? 'Buscando...' : 'Puxar Tempo Real'}
+                                            </button>
+
                                             <button 
                                                 onClick={() => {
                                                     setSelectedUser(loc);
@@ -122,7 +168,7 @@ export default function AdminDashboardPage() {
                                                     fontWeight: '600'
                                                 }}
                                             >
-                                                <MapPin size={16} /> Localizar
+                                                <MapPin size={16} /> Ver Mapa
                                             </button>
                                         </td>
                                     </tr>
